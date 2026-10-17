@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exam AI • Zero-Defect Question Pipeline</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- KaTeX for pristine math & science rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Top Minimalist Bar -->
+  <header class="app-header">
+    <div class="header-left">
+      <span class="logo-mark">●</span>
+      <span class="logo-text">Exam AI</span>
+      <span id="header-exam-badge" class="badge hidden">AP Exam</span>
+    </div>
+    <div class="header-right">
+      <button id="btn-reset-exam" class="btn-ghost hidden" title="Change Exam">
+        Reset Exam
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-container">
+
+    <!-- ============================================== -->
+    <!-- SCREEN 1: ONBOARDING (Single Question)         -->
+    <!-- ============================================== -->
+    <section id="screen-onboarding" class="screen active">
+      <div class="onboard-card">
+        <h1 class="onboard-title">Aap kis exam ki tayyari kar rahe hain?</h1>
+        
+        <form id="form-onboard" class="onboard-form">
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              id="input-exam-name" 
+              placeholder="e.g. AP Exam, SAT, GCSE, NEET, JEE Main, A-Levels..." 
+              required 
+              autocomplete="off"
+            />
+          </div>
+
+          <div id="onboard-error-msg" class="error-banner hidden"></div>
+
+          <div class="quick-pills-label">Popular Exams:</div>
+          <div class="quick-pills">
+            <button type="button" class="pill-btn" data-exam="AP Exam">AP Exam (USA)</button>
+            <button type="button" class="pill-btn" data-exam="SAT">SAT (USA)</button>
+            <button type="button" class="pill-btn" data-exam="GCSE">GCSE (UK)</button>
+            <button type="button" class="pill-btn" data-exam="A-Levels">A-Levels (UK)</button>
+            <button type="button" class="pill-btn" data-exam="NEET">NEET (India)</button>
+            <button type="button" class="pill-btn" data-exam="JEE">JEE (India)</button>
+          </div>
+
+          <button type="submit" id="btn-start-research" class="btn-primary">
+            Continue
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- SCREEN 2: DEEP WEB RESEARCHING ANIMATION       -->
+    <!-- ============================================== -->
+    <section id="screen-researching" class="screen">
+      <div class="status-card">
+        <div class="spinner"></div>
+        <h2 id="research-title" class="status-title">Official Web Research Chalu Hai...</h2>
+        <div class="progress-steps">
+          <div id="step-1" class="step active">● Official examination authority scan ho rahi hai...</div>
+          <div id="step-2" class="step">○ Official subject taxonomy aur parts detect ho rahe hain...</div>
+          <div id="step-3" class="step">○ Top 10 authentic subjects format ho rahe hain...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- SCREEN 3: DYNAMIC SUBJECT SELECTION            -->
+    <!-- ============================================== -->
+    <section id="screen-subjects" class="screen">
+      <div class="content-header">
+        <button id="btn-back-to-onboard" class="btn-back" type="button" title="Back to Exam Input">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          <span>Change Exam</span>
+        </button>
+        <h1 class="section-title">Apne subjects select karein</h1>
+        <p id="subjects-exam-subtitle" class="section-subtitle">Official subjects for your exam</p>
+      </div>
+
+      <div id="subjects-grid" class="subjects-grid">
+        <!-- Injected dynamically: 10 subjects + 11th Other -->
+      </div>
+
+      <div id="other-subject-container" class="other-input-box hidden">
+        <input type="text" id="input-other-subject" placeholder="Apna subject name type karein..." />
+      </div>
+
+      <div class="action-footer">
+        <button id="btn-save-subjects" class="btn-primary" disabled>
+          Save & Build Exam Brain
+        </button>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- SCREEN 4: BRAIN VAULT INITIALIZATION           -->
+    <!-- ============================================== -->
+    <section id="screen-brain-building" class="screen">
+      <div class="status-card">
+        <div class="spinner"></div>
+        <h2 class="status-title">Personal Exam Brain Vault Ban Raha Hai...</h2>
+        <div class="progress-steps">
+          <div id="brain-step-1" class="step active">● Selected subjects ka official syllabus download ho raha hai...</div>
+          <div id="brain-step-2" class="step">○ Question formats (MCQ, FRQ, Structured) map ho rahe hain...</div>
+          <div id="brain-step-3" class="step">○ Marking rubrics aur scoring guidelines compile ho rahi hain...</div>
+          <div id="brain-step-4" class="step">○ Device memory mein brain hamesha ke liye lock ho raha hai...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- SCREEN 5: MAIN UNLOCKED APP DASHBOARD          -->
+    <!-- ============================================== -->
+    <section id="screen-app" class="screen">
+      
+      <!-- Control Panel -->
+      <div class="dashboard-controls">
+        <div class="control-row">
+          
+          <div class="control-group">
+            <label class="control-label">Subject</label>
+            <select id="select-active-subject" class="styled-select">
+              <!-- Dynamically populated from saved subjects -->
+            </select>
+          </div>
+
+          <div class="control-group flex-grow">
+            <label class="control-label">Topic / Unit</label>
+            <div class="topic-input-container">
+              <input 
+                type="text" 
+                id="input-topic" 
+                placeholder="Topic name type karein ya unit select karein..." 
+                required 
+              />
+              <button id="btn-quick-units" class="btn-inline-units" type="button" title="View Syllabus Units">
+                Syllabus
+              </button>
+            </div>
+            <!-- Dropdown for quick syllabus units -->
+            <div id="units-popover" class="units-popover hidden">
+              <!-- Units list injected here -->
+            </div>
+          </div>
+
+        </div>
+
+        <div class="control-row secondary-row">
+          
+          <div class="control-group">
+            <label class="control-label">Total Questions</label>
+            <div class="segmented-control" id="count-selector">
+              <button type="button" class="segment-btn active" data-count="10">10</button>
+              <button type="button" class="segment-btn" data-count="20">20 (2 Batches)</button>
+              <button type="button" class="segment-btn" data-count="30">30 (3 Batches)</button>
+              <button type="button" class="segment-btn" data-count="50">50 (5 Batches)</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label">Format Style</label>
+            <div class="segmented-control" id="mode-selector">
+              <button type="button" class="segment-btn active" data-mode="mix">Real Exam Mix</button>
+              <button type="button" class="segment-btn" data-mode="objective">Objective Only</button>
+              <button type="button" class="segment-btn" data-mode="subjective">Subjective Only</button>
+            </div>
+          </div>
+
+          <div class="control-group submit-group">
+            <button id="btn-generate-batch" class="btn-primary btn-generate">
+              Generate Questions
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Progressive Session Status Banner -->
+      <div id="session-status-banner" class="session-banner hidden">
+        <div class="banner-left">
+          <span class="pulse-indicator"></span>
+          <span id="session-batch-text">Batch 1 of 2 Verified</span>
+        </div>
+        <div class="banner-right">
+          <span id="session-background-text" class="text-subtle">⚡ Batch 2 generating in background...</span>
+        </div>
+      </div>
+
+      <!-- Questions Feed -->
+      <div id="questions-feed" class="questions-feed">
+        <!-- Rendered question cards appear here progressively -->
+        <div id="empty-state" class="empty-state">
+          <p>Upar topic enter karein aur <strong>Generate Questions</strong> dabayein.</p>
+          <span class="empty-subtext">Aapke exam ke official standard ke hisaab se questions banna shuru honge.</span>
+        </div>
+      </div>
+
+      <!-- Load Next Batch Floating Button -->
+      <div id="next-batch-container" class="next-batch-container hidden">
+        <button id="btn-load-next-batch" class="btn-primary">
+          View Next Verified Batch (10 Questions) →
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ============================================== -->
+  <!-- MODAL: TOPIC CAPACITY PROMPT (Honest UI Choice)-->
+  <!-- ============================================== -->
+  <div id="modal-capacity" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3 class="modal-title">Topic Capacity Notice</h3>
+      <p id="capacity-message" class="modal-text">
+        Is specific topic par naturally sirf 12 genuine questions banna possible hain.
+      </p>
+
+      <div class="modal-choices">
+        <button id="btn-capacity-opt1" class="btn-choice">
+          <strong>Option 1 (100% Genuine Quality)</strong>
+          <span>Sirf is topic ke top genuine questions banayein</span>
+        </button>
+
+        <button id="btn-capacity-opt2" class="btn-choice">
+          <strong>Option 2 (Syllabus Expansion)</strong>
+          <span>Related connected topics jod kar poora batch banayein</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modals -->
+
+  <script src="app.js"></script>
+</body>
+</html>
