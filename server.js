@@ -249,9 +249,14 @@ app.post('/api/initialize-brain', async (req, res) => {
 
     // Live AI Research for each selected subject
     for (const subj of selectedSubjects) {
-      console.log(`[Initialize-Brain] Fetching official syllabus for: "${subj}"...`);
-      const syllabusPrompt = `You are a chief examination auditor for ${brainVault.examName} (${brainVault.board}).
-Provide the REAL, OFFICIAL curriculum units, syllabus topics, and exam nature for the subject: "${subj}".
+      console.log(`[Initialize-Brain] Deep researching official syllabus & marking schemes for: "${subj}"...`);
+      const syllabusPrompt = `You are a chief examination auditor and senior mark-scheme designer for ${brainVault.examName} (${brainVault.board}).
+Provide the REAL, OFFICIAL curriculum units, syllabus topics, official marking scheme, and visual examination requirements for the subject: "${subj}".
+
+DEEP CURRICULUM & SCORING RESEARCH MANDATE:
+1. Extract authentic official curriculum units.
+2. Research the OFFICIAL MARKING SCHEME & SCORING METHODOLOGY used by real examiners for "${subj}" (e.g. how marks/numbers are awarded in the real exam, step-marking breakdown rules, M1/A1/B1 method vs accuracy marks, levels-of-response descriptors, negative marking rules, what examiners accept vs penalize).
+3. Research the presence and frequency of GRAPHS, DATA TABLES, and SCIENTIFIC/GEOMETRIC DIAGRAMS in official papers for this subject.
 
 Return valid JSON strictly matching:
 {
@@ -266,11 +271,21 @@ Return valid JSON strictly matching:
   "subjectNature": "Theoretical" | "Quantitative" | "Mixed",
   "typicalQuestionSplit": { "objectivePercent": 50, "subjectivePercent": 50 },
   "keyTopics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4"],
-  "officialTextbooks": ["Authoritative Textbook 1", "Authoritative Textbook 2"]
+  "officialTextbooks": ["Authoritative Textbook 1", "Authoritative Textbook 2"],
+  "officialMarkingScheme": {
+    "schemeStyle": "e.g. Step-by-Step Method/Accuracy (M1, A1, B1) or Levels of Response Rubric",
+    "stepMarkingRules": [
+      "Rule 1: Method marks for relevant formula/law",
+      "Rule 2: Marks for substitution and intermediate units",
+      "Rule 3: Accuracy marks for final answer with unit and significant figures"
+    ],
+    "markingPhilosophy": "How examiners award partial credit and handle error carried forward",
+    "visualDataUsage": "High / Medium / Low - types of graphs, tables, or diagrams commonly examined"
+  }
 }`;
 
       try {
-        const rawSyllabus = await callGemini(apiKey, syllabusPrompt, `Extract official units for ${subj} in ${brainVault.examName}`);
+        const rawSyllabus = await callGemini(apiKey, syllabusPrompt, `Extract official units and marking scheme for ${subj} in ${brainVault.examName}`);
         const parsedProfile = extractJson(rawSyllabus);
 
         brainVault.subjectsData[subj] = {
@@ -280,7 +295,17 @@ Return valid JSON strictly matching:
           subjectNature: parsedProfile.subjectNature || "Mixed",
           typicalQuestionSplit: parsedProfile.typicalQuestionSplit || { objectivePercent: 50, subjectivePercent: 50 },
           keyTopics: parsedProfile.keyTopics || [],
-          officialTextbooks: parsedProfile.officialTextbooks || []
+          officialTextbooks: parsedProfile.officialTextbooks || [],
+          officialMarkingScheme: parsedProfile.officialMarkingScheme || {
+            schemeStyle: "Official Step-by-Step Method/Accuracy Marking",
+            stepMarkingRules: [
+              "Method Mark (M1): Valid physical principle, formula, or law correctly cited",
+              "Accuracy Mark (A1): Intermediate evaluation and substitution with standard units",
+              "Final Mark (A1/B1): Correct numerical or conceptual conclusion with units"
+            ],
+            markingPhilosophy: "Credit awarded strictly for logically grounded working and standard scientific terminology.",
+            visualDataUsage: "Moderate - data tables and schematic graphs examined where authentic."
+          }
         };
       } catch (err) {
         console.warn(`Fallback syllabus generation for ${subj}:`, err.message);
@@ -293,7 +318,17 @@ Return valid JSON strictly matching:
             `Unit 5: Comprehensive Exam Review`
           ],
           subjectNature: /history|literature|law|biology|civics/i.test(subj) ? "Theoretical" : "Mixed",
-          typicalQuestionSplit: { objectivePercent: 50, subjectivePercent: 50 }
+          typicalQuestionSplit: { objectivePercent: 50, subjectivePercent: 50 },
+          officialMarkingScheme: {
+            schemeStyle: "Step-by-Step Method/Accuracy Marking",
+            stepMarkingRules: [
+              "1 Mark: Relevant formula or definition stated",
+              "1 Mark: Proper substitution and working",
+              "1 Mark: Accurate final answer with units"
+            ],
+            markingPhilosophy: "Examiners award marks step-by-step; error carried forward applies.",
+            visualDataUsage: "Standard exam graphs and tables where applicable."
+          }
         };
       }
     }
@@ -397,6 +432,14 @@ app.post('/api/generate-batch', async (req, res) => {
     const subjectNature = subjMeta.subjectNature || (/history|bio|literature|law/i.test(subject) ? "Theoretical" : "Mixed");
     const nativeObjName = brainVault?.formats?.objectiveName || "Multiple-Choice Question (MCQ)";
     const nativeSubjName = brainVault?.formats?.subjectiveName || "Free-Response Question (FRQ)";
+    const subjMarkingScheme = subjMeta.officialMarkingScheme || {
+      schemeStyle: "Official Step-by-Step Method/Accuracy Marking",
+      stepMarkingRules: [
+        "1 Mark (M1): Valid physical principle, formula, or law correctly cited",
+        "1 Mark: Intermediate evaluation and substitution with standard units",
+        "1 Mark (A1): Correct numerical or conceptual conclusion with units"
+      ]
+    };
 
     const memoryNotice = previousQuestions && previousQuestions.length > 0
       ? `CRITICAL DEDUPLICATION RULE: DO NOT repeat any of these previously generated questions:\n${previousQuestions.slice(-25).map((q, i) => `${i+1}. ${q}`).join('\n')}`
@@ -405,7 +448,7 @@ app.post('/api/generate-batch', async (req, res) => {
     // ---------------------------------------------------------
     // Agent 1: The Question Generator Agent
     // ---------------------------------------------------------
-    const generatorSystemPrompt = `You are a chief examination question maker for the official ${examName} (${subject}).
+    const generatorSystemPrompt = `You are a chief examination question maker and official mark-scheme author for the official ${examName} (${subject}).
 Your mission is to generate exactly ${batchSize} authentic, high-quality, realistic examination questions for the topic: "${topic}".
 
 STRICT CURRICULUM CONSTRAINTS:
@@ -420,18 +463,51 @@ STRICT CURRICULUM CONSTRAINTS:
    - If 'objective': All ${batchSize} questions must be ${nativeObjName}.
    - If 'subjective': All ${batchSize} questions must be ${nativeSubjName} with multi-part anatomy (Part a, Part b, Part c with marks).
    - If 'mix': First 70% ${nativeObjName}, remaining 30% ${nativeSubjName}.
-4. MCQ Distractor Quality: For MCQs, provide 4 completely distinct options (A, B, C, D). Distractors must represent common student misconceptions.
-5. Explanations: EVERY single question MUST have a comprehensive, step-by-step bullet-point explanation.
-6. Math & Science Notation: Use clean, valid KaTeX LaTeX ($...$ for inline, $$...$$ for blocks). No broken characters.
-7. ${memoryNotice}
-8. CRITICAL JSON RULE: Return 100% valid JSON. DO NOT include trailing commas (e.g. [1, 2,] is forbidden). Always double-escape backslashes in LaTeX (e.g. \\\\text, \\\\frac).
+
+4. VISUAL & DATA INTEGRATION RULE (Graphs, Tables, Diagrams):
+   - Assess if the topic "${topic}" in ${subject} naturally involves Data Tables, Graphs, or Scientific/Geometric Diagrams in the real ${examName} (e.g. velocity-time curves, circuit schematics, ray diagrams, force vectors, reaction data tables, biology flowcharts/cell diagrams, geometry/trig figures, economics supply-demand curves).
+   - When authentic to the syllabus (especially for Quantitative and Mixed subjects, generate 2-4 questions in a 10-question set with visual data):
+     a) For Data Tables:
+        "visual": {
+          "type": "table",
+          "caption": "Table 1: [Descriptive title with units]",
+          "tableData": {
+            "headers": ["Variable (Units)", "Value 1", "Value 2"],
+            "rows": [["Trial 1", "10.5", "2.1"], ["Trial 2", "20.0", "4.0"]]
+          }
+        }
+     b) For Graphs or Diagrams:
+        "visual": {
+          "type": "graph" | "diagram",
+          "caption": "Figure 1: [Descriptive diagram or graph title]",
+          "svgContent": "<svg viewBox=\\"0 0 450 220\\" xmlns=\\"http://www.w3.org/2000/svg\\" width=\\"100%\\" height=\\"auto\\"><rect width=\\"100%\\" height=\\"100%\\" fill=\\"#ffffff\\"/><line x1=\\"50\\" y1=\\"180\\" x2=\\"400\\" y2=\\"180\\" stroke=\\"#111827\\" stroke-width=\\"2\\"/><line x1=\\"50\\" y1=\\"180\\" x2=\\"50\\" y2=\\"20\\" stroke=\\"#111827\\" stroke-width=\\"2\\"/><text x=\\"380\\" y=\\"195\\" font-family=\\"sans-serif\\" font-size=\\"12\\" fill=\\"#111827\\">Time (s)</text><text x=\\"55\\" y=\\"25\\" font-family=\\"sans-serif\\" font-size=\\"12\\" fill=\\"#111827\\">Velocity (m/s)</text><polyline points=\\"50,180 150,80 300,80 380,180\\" fill=\\"none\\" stroke=\\"#2563eb\\" stroke-width=\\"2.5\\"/></svg>"
+        }
+        * SVG Standards: Pure valid SVG XML, viewBox="0 0 450 220", width="100%", crisp lines (stroke="#111827" or "#2563eb", stroke-width="2"), clean readable text (<text>), no external scripts or broken tags.
+     c) If no visual is needed for a specific question, set "visual": null.
+
+5. OFFICIAL MARKING SCHEME & STEP ALLOCATION:
+   - Ground every question in the official marking style: "${subjMarkingScheme.schemeStyle}".
+   - Provide a step-by-step "markingBreakdown" array for every question specifying exact point allocation (e.g. "1 Mark (M1): Principle/Formula stated", "1 Mark: Correct substitution and units", "1 Mark (A1): Accurate final deduction").
+   - Include an "examinerTip" highlighting common student misconceptions, pitfalls to avoid, or what examiners look for.
+
+6. MCQ Distractor Quality: For MCQs, provide 4 completely distinct options (A, B, C, D). Distractors must represent common student misconceptions.
+7. Explanations: EVERY single question MUST have a comprehensive, step-by-step bullet-point explanation.
+8. Math & Science Notation: Use clean, valid KaTeX LaTeX ($...$ for inline, $$...$$ for blocks). No broken characters.
+9. ${memoryNotice}
+10. CRITICAL JSON RULE: Return 100% valid JSON. DO NOT include trailing commas. Always double-escape backslashes in LaTeX (e.g. \\\\text, \\\\frac) and escape quotes inside SVG strings.
 
 Return a valid JSON array of objects strictly matching this schema:
 [
   {
     "type": "Objective" | "Subjective",
     "nativeTypeLabel": "${nativeObjName}" | "${nativeSubjName}",
-    "questionText": "Clear, complete question statement...",
+    "questionText": "Clear, complete question statement (referencing visual if present)...",
+    "visual": null | {
+      "type": "table" | "graph" | "diagram",
+      "caption": "Figure 1 / Table 1: Caption",
+      "tableData": { "headers": ["..."], "rows": [["..."]] }, // ONLY if type is table
+      "svgContent": "<svg viewBox=\\"0 0 450 220\\">...</svg>" // ONLY if type is graph or diagram
+    },
     "parts": [
       { "part": "a", "marks": 2, "text": "Part a question..." },
       { "part": "b", "marks": 3, "text": "Part b question..." }
@@ -447,7 +523,13 @@ Return a valid JSON array of objects strictly matching this schema:
       "• Point 1: Fundamental principle or law stated",
       "• Point 2: Step-by-step derivation or causal reasoning",
       "• Point 3: Analysis of options and confirmation of correct answer"
-    ]
+    ],
+    "markingBreakdown": [
+      "1 Mark (M1): Formula or principle stated correctly",
+      "1 Mark: Intermediate calculation / substitution",
+      "1 Mark (A1): Accurate answer with correct units"
+    ],
+    "examinerTip": "Common misconception or examiner insight..."
   }
 ]`;
 
@@ -475,7 +557,15 @@ AUDIT CHECKLIST:
 - For MCQs: Ensure the correct answer is unambiguously present in the options list.
 - Check that distractors are distinct and no options are repeated.
 
-[Check 3: Step-by-Step Bullet Explanations & KaTeX]
+[Check 3: Graphs, Tables & SVG Diagrams]
+- If a question has an SVG graph or diagram, verify that the SVG is valid XML, uses viewBox="0 0 450 220", has clean labels, and matches the numbers/context in the question text.
+- If a question has a table, verify all columns and rows align properly.
+- If an SVG is malformed, fix it or convert into clean table data.
+
+[Check 4: Official Marking Scheme & Step Breakdown]
+- Verify that "markingBreakdown" accurately reflects ${examName}'s real scoring standards (M1/A1 marks, total marks match question marks).
+
+[Check 5: Step-by-Step Bullet Explanations & KaTeX]
 - Verify that every explanation is detailed, step-by-step bullet points.
 - Ensure all LaTeX ($...$, $$...$$) is clean, properly formatted, and bug-free for KaTeX.
 
@@ -498,13 +588,26 @@ Return the final AUTO-CORRECTED array in valid JSON matching the exact schema.`;
       verifiedBatch = generatedBatch;
     }
 
-    // Post-process numbering and LaTeX sanitization
+    // Post-process numbering, visual SVG sanitization, and LaTeX sanitization
     const finalQuestions = verifiedBatch.map((q, idx) => {
       const qNum = (batchNumber - 1) * batchSize + (idx + 1);
+      let visual = q.visual || null;
+      if (visual) {
+        if ((visual.type === 'graph' || visual.type === 'diagram') && visual.svgContent) {
+          visual.svgContent = sanitizeSvg(visual.svgContent);
+          if (!visual.svgContent) visual = null;
+        }
+      }
+
       return {
         ...q,
         questionNumber: qNum,
+        visual: visual,
         questionText: sanitizeLatex(q.questionText || ''),
+        markingBreakdown: Array.isArray(q.markingBreakdown) && q.markingBreakdown.length > 0
+          ? q.markingBreakdown.map(m => sanitizeLatex(m))
+          : [`Full credit awarded for complete, accurate reasoning aligned with ${examName} rubrics.`],
+        examinerTip: q.examinerTip ? sanitizeLatex(q.examinerTip) : null,
         explanationBullets: Array.isArray(q.explanationBullets)
           ? q.explanationBullets.map(b => sanitizeLatex(b))
           : [sanitizeLatex(q.explanation || 'Verified step-by-step reasoning.')]
@@ -525,6 +628,29 @@ Return the final AUTO-CORRECTED array in valid JSON matching the exact schema.`;
     res.status(500).json({ error: error.message });
   }
 });
+
+// -------------------------------------------------------------
+// Helper: SVG Sanitizer (Guarantees bug-free & safe vector graphics)
+// -------------------------------------------------------------
+function sanitizeSvg(svgStr) {
+  if (!svgStr || typeof svgStr !== 'string') return null;
+  let clean = svgStr.trim();
+  // Strip dangerous tags or handlers
+  clean = clean.replace(/<script[\s\S]*?<\/script>/gi, '');
+  clean = clean.replace(/on\w+="[^"]*"/gi, '');
+  clean = clean.replace(/on\w+='[^']*'/gi, '');
+  
+  // Extract clean <svg ... </svg>
+  const match = clean.match(/<svg[\s\S]*?<\/svg>/i);
+  if (match) {
+    clean = match[0];
+    if (!clean.includes('xmlns=')) {
+      clean = clean.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
+    return clean;
+  }
+  return null;
+}
 
 // -------------------------------------------------------------
 // Helper: Latex & Text Sanitizer (Guarantees bug-free KaTeX rendering)

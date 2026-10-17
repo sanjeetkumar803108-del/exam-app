@@ -395,6 +395,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const subjData = state.brainVault?.subjectsData?.[state.activeSubject];
     unitsPopover.innerHTML = '';
 
+    // Show official marking scheme protocol if available
+    if (subjData?.officialMarkingScheme) {
+      const schemeHeader = document.createElement('div');
+      schemeHeader.className = 'popover-scheme-header';
+      schemeHeader.innerHTML = `
+        <div class="popover-scheme-badge">Official Marking Protocol</div>
+        <div class="popover-scheme-title">${escapeHtml(subjData.officialMarkingScheme.schemeStyle || 'Step-by-Step Scoring')}</div>
+        <div class="popover-scheme-rules">
+          ${(subjData.officialMarkingScheme.stepMarkingRules || []).slice(0, 2).map(r => `• ${escapeHtml(r)}`).join('<br>')}
+        </div>
+      `;
+      unitsPopover.appendChild(schemeHeader);
+    }
+
     const units = subjData?.units || [
       'Fundamental Principles & Definitions',
       'Advanced Analytical Concepts',
@@ -639,6 +653,45 @@ document.addEventListener('DOMContentLoaded', () => {
       const isSubjective = q.type === 'Subjective';
       const nativeLabel = q.nativeTypeLabel || (isSubjective ? 'Free-Response' : 'Multiple-Choice');
 
+      // Visual Component Rendering (Data Table, SVG Graph, SVG Diagram)
+      let visualHtml = '';
+      if (q.visual) {
+        if (q.visual.type === 'table' && q.visual.tableData && Array.isArray(q.visual.tableData.headers)) {
+          const headers = q.visual.tableData.headers;
+          const rows = q.visual.tableData.rows || [];
+          visualHtml = `
+            <div class="question-visual-box">
+              <div class="table-responsive">
+                <table class="question-table">
+                  <thead>
+                    <tr>
+                      ${headers.map(h => `<th>${escapeHtml(h)}</th>`).join('')}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${rows.map(row => `
+                      <tr>
+                        ${row.map(cell => `<td>${escapeHtml(String(cell))}</td>`).join('')}
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+              ${q.visual.caption ? `<div class="visual-caption">${escapeHtml(q.visual.caption)}</div>` : ''}
+            </div>
+          `;
+        } else if ((q.visual.type === 'graph' || q.visual.type === 'diagram') && q.visual.svgContent) {
+          visualHtml = `
+            <div class="question-visual-box">
+              <div class="visual-svg-container">
+                ${q.visual.svgContent}
+              </div>
+              ${q.visual.caption ? `<div class="visual-caption">${escapeHtml(q.visual.caption)}</div>` : ''}
+            </div>
+          `;
+        }
+      }
+
       let optionsOrPartsHtml = '';
       if (isSubjective) {
         // Multi-part breakdown
@@ -680,6 +733,36 @@ document.addEventListener('DOMContentLoaded', () => {
         </ul>
       `;
 
+      // Official Marking Scheme Breakdown Box
+      let markingHtml = '';
+      if (q.markingBreakdown && Array.isArray(q.markingBreakdown) && q.markingBreakdown.length > 0) {
+        markingHtml = `
+          <div class="marking-scheme-container">
+            <div class="marking-scheme-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              <span>Official Marking Scheme & Point Allocation</span>
+            </div>
+            <ul class="marking-scheme-list">
+              ${q.markingBreakdown.map(m => `
+                <li class="marking-scheme-item">
+                  <span>${m}</span>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+        `;
+      }
+
+      // Examiner Tip / Insights
+      let tipHtml = '';
+      if (q.examinerTip) {
+        tipHtml = `
+          <div class="examiner-tip-box">
+            <strong>💡 Official Examiner Insight:</strong> ${q.examinerTip}
+          </div>
+        `;
+      }
+
       card.innerHTML = `
         <div class="question-meta-bar">
           <span class="question-badge">${nativeLabel} • Q${q.questionNumber}</span>
@@ -693,6 +776,8 @@ document.addEventListener('DOMContentLoaded', () => {
           ${q.questionText}
         </div>
 
+        ${visualHtml}
+
         ${optionsOrPartsHtml}
 
         <button class="accordion-toggle" type="button">
@@ -701,7 +786,10 @@ document.addEventListener('DOMContentLoaded', () => {
         </button>
 
         <div class="explanation-body hidden">
+          <div class="explanation-section-title">Step-by-Step Solution:</div>
           ${bulletHtml}
+          ${markingHtml}
+          ${tipHtml}
         </div>
       `;
 
@@ -753,8 +841,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/"/g, '&quot;');
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
 });

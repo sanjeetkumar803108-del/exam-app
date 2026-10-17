@@ -882,3 +882,172 @@ body {
   justify-content: flex-end;
   gap: 8px;
 }
+
+/* -------------------------------------------------------------
+   Visual Media: Tables, Graphs & SVG Diagrams
+------------------------------------------------------------- */
+.question-visual-box {
+  margin: 16px 0 20px 0;
+  padding: 16px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.question-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  margin: 4px 0;
+  background-color: #ffffff;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.question-table th {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-weight: 600;
+  padding: 10px 14px;
+  text-align: left;
+  border: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+
+.question-table td {
+  padding: 9px 14px;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.question-table tr:hover {
+  background-color: #fbfbfb;
+}
+
+.visual-svg-container {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}
+
+.visual-svg-container svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.visual-caption {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* -------------------------------------------------------------
+   Official Marking Scheme & Scoring Rubrics in Explanations
+------------------------------------------------------------- */
+.explanation-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.marking-scheme-container {
+  margin-top: 16px;
+  padding: 14px 16px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.marking-scheme-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.marking-scheme-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.marking-scheme-item {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  padding: 6px 10px;
+  background-color: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.examiner-tip-box {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background-color: #eff6ff;
+  border-left: 3px solid var(--accent-blue);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #1e3a8a;
+}
+
+/* -------------------------------------------------------------
+   Popover Marking Protocol Banner
+------------------------------------------------------------- */
+.popover-scheme-header {
+  padding: 10px 12px;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 6px;
+}
+
+.popover-scheme-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-blue);
+}
+
+.popover-scheme-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 2px 0 4px 0;
+}
+
+.popover-scheme-rules {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
