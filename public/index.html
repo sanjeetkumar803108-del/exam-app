@@ -23,6 +23,9 @@
       <span id="header-exam-badge" class="badge hidden">AP Exam</span>
     </div>
     <div class="header-right">
+      <button id="btn-api-key" class="btn-ghost" type="button" title="Gemini API Key Settings" style="display: inline-flex; align-items: center; gap: 4px; font-size: 13px;">
+        ⚙️ Settings
+      </button>
       <button id="btn-reset-exam" class="btn-ghost hidden" title="Change Exam">
         Reset Exam
       </button>
@@ -250,7 +253,30 @@
     </div>
   </div>
 
-  <!-- Modals -->
+  <!-- ============================================== -->
+  <!-- MODAL: API KEY SETTINGS                        -->
+  <!-- ============================================== -->
+  <div id="modal-api-key" class="modal-overlay hidden">
+    <div class="modal-card">
+      <h3 class="modal-title">Gemini API Key Settings</h3>
+      <p class="modal-text">
+        Enter your Google Gemini API Key. Free API keys from Google AI Studio (aistudio.google.com) are supported.
+      </p>
+      <div style="margin: 16px 0;">
+        <input 
+          type="password" 
+          id="input-gemini-key" 
+          placeholder="Paste your Gemini API Key here..." 
+          style="width: 100%; box-sizing: border-box; padding: 12px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none;"
+        />
+        <div id="key-status-msg" style="margin-top: 8px; font-size: 13px; color: #10b981;" class="hidden">Key saved successfully!</div>
+      </div>
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button id="btn-cancel-key" class="btn-ghost" type="button">Close</button>
+        <button id="btn-save-key" class="btn-primary" type="button" style="padding: 8px 18px;">Save Key</button>
+      </div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>

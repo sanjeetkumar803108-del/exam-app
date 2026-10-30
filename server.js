@@ -76,18 +76,17 @@ function extractJson(text) {
 async function callGemini(apiKeyOverride, systemPrompt, userPrompt, temperature = 0.25) {
   const effectiveKey = apiKeyOverride || process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
   if (!effectiveKey) {
-    throw new Error('Gemini API Key is not configured. Please check .env file.');
+    throw new Error('Gemini API Key is not configured. Please add your Gemini API Key in settings or .env file.');
   }
 
   // Pool of high-performance models with independent free quotas
   const models = [
+    'gemini-2.5-flash',
     'gemini-3.5-flash',
     'gemini-3.1-flash-lite',
     'gemini-flash-lite-latest',
-    'gemini-3.5-flash-lite',
-    'gemini-3-flash-preview',
-    'gemini-flash-latest',
-    'gemini-3.8-flash'
+    'gemini-2.0-flash',
+    'gemini-1.5-flash'
   ];
   let lastError = null;
 
@@ -124,14 +123,13 @@ async function callGemini(apiKeyOverride, systemPrompt, userPrompt, temperature 
         const errDetail = await response.text();
         console.warn(`[Gemini API] Model ${model} returned HTTP ${response.status}:`, errDetail.slice(0, 120));
         
-        // If 429 (Quota exceeded for this specific model), switch to next model immediately!
-        if (response.status === 429) {
-          console.log(`[Gemini API] Model ${model} quota reached, switching immediately to next available model...`);
-          lastError = new Error(`Model ${model} quota reached`);
+        lastError = new Error(`Model ${model} error: ${errDetail.slice(0, 100)}`);
+
+        // If quota exceeded, temporary high-demand spike, model restricted or not found, try next model immediately
+        if (response.status === 429 || response.status === 403 || response.status === 404 || response.status === 503) {
+          console.log(`[Gemini API] Model ${model} returned HTTP ${response.status}, switching immediately to next available model...`);
           continue;
         }
-        
-        lastError = new Error(`Model ${model} error: ${errDetail.slice(0, 100)}`);
       }
     } catch (networkErr) {
       console.warn(`[Gemini API] Network error for ${model}:`, networkErr.message);
@@ -139,7 +137,13 @@ async function callGemini(apiKeyOverride, systemPrompt, userPrompt, temperature 
     }
   }
 
-  throw lastError || new Error('All Gemini model endpoints failed.');
+  if (!lastError) {
+    throw new Error('All Gemini model endpoints failed. Please check your Gemini API key in settings.');
+  }
+  if (lastError.message && (lastError.message.includes('API key not valid') || lastError.message.includes('401') || lastError.message.includes('403'))) {
+    throw new Error('Invalid or expired Gemini API Key. Please update your API Key in Settings (⚙️).');
+  }
+  throw lastError;
 }
 
 // -------------------------------------------------------------

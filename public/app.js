@@ -58,6 +58,43 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnLoadNextBatch = document.getElementById('btn-load-next-batch');
 
   const modalCapacity = document.getElementById('modal-capacity');
+  const btnApiKey = document.getElementById('btn-api-key');
+  const modalApiKey = document.getElementById('modal-api-key');
+  const inputGeminiKey = document.getElementById('input-gemini-key');
+  const btnSaveKey = document.getElementById('btn-save-key');
+  const btnCancelKey = document.getElementById('btn-cancel-key');
+  const keyStatusMsg = document.getElementById('key-status-msg');
+
+  if (btnApiKey && modalApiKey) {
+    btnApiKey.addEventListener('click', () => {
+      inputGeminiKey.value = state.apiKey || '';
+      modalApiKey.classList.remove('hidden');
+      inputGeminiKey.focus();
+    });
+
+    btnCancelKey.addEventListener('click', () => {
+      modalApiKey.classList.add('hidden');
+      if (keyStatusMsg) keyStatusMsg.classList.add('hidden');
+    });
+
+    btnSaveKey.addEventListener('click', () => {
+      const trimmed = inputGeminiKey.value.trim();
+      state.apiKey = trimmed;
+      if (trimmed) {
+        localStorage.setItem('exam_ai_gemini_key', trimmed);
+      } else {
+        localStorage.removeItem('exam_ai_gemini_key');
+      }
+      if (keyStatusMsg) {
+        keyStatusMsg.textContent = trimmed ? 'Key saved successfully!' : 'Key cleared (using default).';
+        keyStatusMsg.classList.remove('hidden');
+      }
+      setTimeout(() => {
+        modalApiKey.classList.add('hidden');
+        if (keyStatusMsg) keyStatusMsg.classList.add('hidden');
+      }, 900);
+    });
+  }
   const capacityMessage = document.getElementById('capacity-message');
   const btnCapacityOpt1 = document.getElementById('btn-capacity-opt1');
   const btnCapacityOpt2 = document.getElementById('btn-capacity-opt2');
@@ -190,8 +227,12 @@ document.addEventListener('DOMContentLoaded', () => {
       // Return to onboarding and show inline error
       showScreen('onboarding');
       if (onboardErrorMsg) {
-        onboardErrorMsg.textContent = err.message;
+        onboardErrorMsg.innerHTML = `${err.message} <button type="button" id="btn-fix-key-err" style="margin-left: 8px; text-decoration: underline; background: none; border: none; color: inherit; cursor: pointer; font-weight: 600;">Update API Key</button>`;
         onboardErrorMsg.classList.remove('hidden');
+        const btnFixKey = document.getElementById('btn-fix-key-err');
+        if (btnFixKey && btnApiKey) {
+          btnFixKey.addEventListener('click', () => btnApiKey.click());
+        }
       }
       inputExamName.classList.add('input-error');
       inputExamName.focus();
